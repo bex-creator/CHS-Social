@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CHS Social</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        xblue: '#1d9bf0',
+                        xblueHover: '#1a8cd8',
+                        xdark: '#000000',
+                        xnav: '#16181c', 
+                        xcard: '#16181c', 
+                        xborder: '#2f3336',
+                        xlight: '#e7e9ea',
+                        xdim: '#71767b'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000000; }
+        ::-webkit-scrollbar-thumb { background: #2f3336; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3f4448; }
+        .nav-item { transition: background-color 0.2s; }
+        .nav-item:hover { background-color: rgba(255, 255, 255, 0.1); }
+        #imagePreviewContainer img { max-height: 300px; object-fit: cover; }
+    </style>
+</head>
+<body class="bg-xdark text-xlight font-sans antialiased min-h-screen flex justify-center overflow-x-hidden">
+
+    <!-- Auth Overlay (Must sign in to access) -->
+    <div id="authScreen" class="fixed inset-0 bg-xdark z-50 flex items-center justify-center overflow-y-auto p-4 transition-opacity duration-300">
+        <div class="bg-xcard border border-xborder p-8 rounded-2xl max-w-md w-full shadow-2xl">
+            <div class="flex justify-center mb-6 bg-transparent">
+                <!-- CHS Clippers Logo (Transparent, No Border) -->
+                <img src="https://i.postimg.cc/90G73r7x/png-clipart-cumberland-high-school-woonsocket-national-secondary-school-providence-school-sport-logo.png" alt="CHS Logo" class="w-24 h-auto max-h-24 object-contain bg-transparent border-none rounded-none shadow-none outline-none">
+            </div>
+            
+            <div class="flex border-b border-xborder mb-6">
+                <button id="tabLogin" class="flex-1 py-2 font-bold text-xblue border-b-2 border-xblue">Log In</button>
+                <button id="tabSignup" class="flex-1 py-2 font-bold text-xdim hover:text-xlight transition-colors">Sign Up</button>
+            </div>
+
+            <!-- Login Form -->
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm text-xdim mb-1">Email</label>
+                    <input type="email" id="loginEmail" class="w-full bg-xdark border border-xborder rounded-lg p-3 text-white outline-none focus:border-xblue transition-colors" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-xdim mb-1">Password</label>
+                    <input type="password" id="loginPassword" class="w-full bg-xdark border border-xborder rounded-lg p-3 text-white outline-none focus:border-xblue transition-colors" required>
+                </div>
+                <button type="submit" id="loginSubmitBtn" class="w-full bg-xblue text-white font-bold py-3 rounded-full hover:bg-xblueHover transition-colors mt-4">Log In</button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signupForm" class="space-y-4 hidden">
+                <div class="flex justify-center mb-4 relative">
+                    <div class="relative group cursor-pointer" id="pfpUploadBtn">
+                        <img id="signupPfpPreview" src="https://placehold.co/150x150/2f3336/ffffff?text=Add+Photo" alt="Profile" class="w-20 h-20 rounded-full object-cover border-2 border-xborder group-hover:border-xblue transition-colors">
+                        <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <i class="fa-solid fa-camera text-white text-xl"></i>
+                        </div>
+                    </div>
+                    <input type="file" id="signupPfpInput" accept="image/*" class="hidden">
+                </div>
+
+                <div>
+                    <label class="block text-sm text-xdim mb-1">Display Name</label>
+                    <input type="text" id="signupName" class="w-full bg-xdark border border-xborder rounded-lg p-3 text-white outline-none focus:border-xblue transition-colors" required maxlength="30">
+                </div>
+                <div>
+                    <label class="block text-sm text-xdim mb-1">Email</label>
+                    <input type="email" id="signupEmail" class="w-full bg-xdark border border-xborder rounded-lg p-3 text-white outline-none focus:border-xblue transition-colors" required>
+                </div>
+                <div>
+                    <label class="block text-sm text-xdim mb-1">Password</label>
+                    <input type="password" id="signupPassword" class="w-full bg-xdark border border-xborder rounded-lg p-3 text-white outline-none focus:border-xblue transition-colors" required minlength="6">
+                </div>
+                <button type="submit" id="signupSubmitBtn" class="w-full bg-white text-black font-bold py-3 rounded-full hover:bg-gray-200 transition-colors mt-4">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="max-w-7xl w-full flex hidden" id="mainAppContent">
+        <!-- Left Sidebar Navigation -->
+        <header class="w-16 sm:w-20 xl:w-72 flex flex-col justify-between h-screen sticky top-0 pt-2 pb-4 px-2 xl:px-4 border-r border-xborder">
+            <div class="flex flex-col space-y-2 items-center xl:items-start w-full">
+                <!-- CHS Logo (Image Tag) -->
+                <div class="p-2 flex items-center justify-center cursor-pointer mb-2 bg-transparent">
+                    <img id="chs-logo" src="https://i.postimg.cc/90G73r7x/png-clipart-cumberland-high-school-woonsocket-national-secondary-school-providence-school-sport-logo.png" alt="CHS Clippers Logo" class="w-16 h-auto max-h-16 object-contain bg-transparent border-none rounded-none shadow-none outline-none">
+                </div>
+                
+                <!-- Nav Links -->
+                <nav class="flex flex-col space-y-1 w-full">
+                    <a href="#" class="nav-item flex items-center space-x-4 p-3 rounded-full text-xl font-bold w-max">
+                        <i class="fa-solid fa-house w-6 text-center"></i>
+                        <span class="hidden xl:inline">Home</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-4 p-3 rounded-full text-xl w-max">
+                        <i class="fa-solid fa-hashtag w-6 text-center"></i>
+                        <span class="hidden xl:inline">Explore</span>
+                    </a>
+                    <a href="#" class="nav-item flex items-center space-x-4 p-3 rounded-full text-xl w-max">
+                        <i class="fa-regular fa-bell w-6 text-center"></i>
+                        <span class="hidden xl:inline">Notifications</span>
+                    </a>
+                </nav>
+
+                <!-- Post Button -->
+                <button onclick="document.getElementById('postContent').focus()" class="bg-xblue hover:bg-xblueHover text-white font-bold rounded-full w-12 h-12 xl:w-full xl:h-14 mt-4 transition-colors flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-feather xl:hidden"></i>
+                    <span class="hidden xl:inline text-lg">Post</span>
+                </button>
+            </div>
+            
+            <!-- User Profile Snippet & Logout -->
+            <div class="flex flex-col space-y-2 w-full mt-auto relative group">
+                <div class="nav-item flex items-center justify-center xl:justify-between p-3 rounded-full cursor-pointer w-full">
+                    <div class="flex items-center space-x-3">
+                        <img src="" alt="User Avatar" class="w-10 h-10 rounded-full object-cover border border-xborder" id="currentUserAvatar">
+                        <div class="hidden xl:flex flex-col text-sm">
+                            <span class="font-bold truncate w-32" id="currentUserName">Loading...</span>
+                            <span class="text-xdim truncate w-32" id="currentUserHandle">@loading</span>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-ellipsis hidden xl:block text-xdim"></i>
+                </div>
+                <!-- Logout Button (Shows on hover on desktop, or under profile pill) -->
+                <button id="logoutBtn" class="bg-red-500/10 hover:bg-red-500/20 text-red-500 font-bold py-2 rounded-full w-full transition-colors flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    <span class="hidden xl:inline">Log out</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Feed -->
+        <main class="flex-1 min-w-0 border-r border-xborder max-w-[600px]">
+            <!-- Header -->
+            <div class="sticky top-0 bg-xdark/80 backdrop-blur-md z-10 border-b border-xborder p-4 cursor-pointer flex justify-between items-center">
+                <h2 class="text-xl font-bold">Home</h2>
+                <span id="dailyLimitIndicator" class="text-xs font-bold text-xdim bg-xborder px-2 py-1 rounded-full hidden">0/10 Photos Today</span>
+            </div>
+
+            <!-- Create Post Area -->
+            <div class="border-b border-xborder p-4 flex space-x-4">
+                <img src="" alt="Avatar" class="w-10 h-10 rounded-full object-cover border border-xborder" id="composerAvatar">
+                <div class="flex-1 pb-2">
+                    <textarea id="postContent" class="w-full bg-transparent text-xl outline-none resize-none overflow-hidden placeholder-xdim mt-2" placeholder="What's happening?!" rows="2" maxlength="280"></textarea>
+                    
+                    <!-- Image Preview Container -->
+                    <div id="imagePreviewContainer" class="hidden relative mt-3 mb-3">
+                        <img id="imagePreview" src="" alt="Preview" class="w-full rounded-2xl border border-xborder">
+                        <button id="removeImageBtn" class="absolute top-2 right-2 bg-black/70 hover:bg-black p-2 rounded-full w-8 h-8 flex items-center justify-center transition-colors shadow-md text-white">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                    </div>
+
+                    <div class="flex items-center justify-between mt-4 border-t border-xborder pt-4">
+                        <div class="flex space-x-2 text-xblue">
+                            <!-- Upload Photo -->
+                            <label id="uploadLabelBtn" class="w-9 h-9 rounded-full hover:bg-xblue/10 flex items-center justify-center cursor-pointer transition-colors" title="Upload Photo">
+                                <i class="fa-regular fa-image text-lg"></i>
+                            </label>
+                            <input type="file" id="imageInput" accept="image/jpeg, image/png, image/webp" class="hidden">
+                            
+                            <!-- Take Photo (Camera) -->
+                            <button id="takePhotoBtn" class="w-9 h-9 rounded-full hover:bg-xblue/10 flex items-center justify-center cursor-pointer transition-colors" title="Take Photo">
+                                <i class="fa-solid fa-camera text-lg"></i>
+                            </button>
+                            
+                            <div class="w-9 h-9 rounded-full hover:bg-xblue/10 flex items-center justify-center cursor-pointer transition-colors hidden sm:flex">
+                                <i class="fa-solid fa-list text-lg"></i>
+                            </div>
+                            <div class="w-9 h-9 rounded-full hover:bg-xblue/10 flex items-center justify-center cursor-pointer transition-colors">
+                                <i class="fa-regular fa-face-smile text-lg"></i>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div id="charCount" class="text-sm text-xdim hidden">0/280</div>
+                            <div class="h-6 w-[1px] bg-xborder hidden sm:block"></div>
+                            <button id="submitPostBtn" class="bg-xblue hover:bg-xblueHover text-white font-bold py-1.5 px-4 rounded-full disabled:opacity-50 disabled:cursor-not-allowed transition-colors" disabled>
+                                Post
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Feed Container -->
+            <div id="feedContainer" class="divide-y divide-xborder min-h-[50vh] pb-32">
+                <!-- Loading State -->
+                <div class="flex justify-center p-8 text-xblue">
+                    <i class="fa-solid fa-spinner fa-spin text-2xl"></i>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Column (Trending) -->
+        <aside class="w-80 hidden lg:flex flex-col py-2 px-6 h-screen sticky top-0 space-y-4">
+            <!-- Search -->
+            <div class="bg-[#202327] rounded-full flex items-center p-3 mt-1 text-xdim focus-within:text-xblue focus-within:bg-black focus-within:border focus-within:border-xblue border border-transparent transition-all">
+                <i class="fa-solid fa-magnifying-glass ml-2"></i>
+                <input type="text" placeholder="Search" class="bg-transparent outline-none w-full ml-4 text-xlight placeholder-xdim">
+            </div>
+
+            <!-- Trends Box styled with dark navy #16181c -->
+            <div class="bg-[#16181c] rounded-2xl pt-4 pb-2">
+                <h2 class="font-extrabold text-xl mb-3 px-4">What's happening</h2>
+                
+                <div class="flex justify-between items-start cursor-pointer hover:bg-white/5 py-3 px-4 transition-colors">
+                    <div class="flex flex-col">
+                        <span class="text-[13px] text-xdim">High School Sports · Trending</span>
+                        <span class="font-bold text-[15px] mt-0.5">Clippers Hockey</span>
+                        <span class="text-[13px] text-xdim mt-0.5">14.2K posts</span>
+                    </div>
+                    <div class="text-xdim hover:text-xblue hover:bg-blue-500/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors -mr-2 -mt-1">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-start cursor-pointer hover:bg-white/5 py-3 px-4 transition-colors">
+                    <div class="flex flex-col">
+                        <span class="text-[13px] text-xdim">Local News · Trending</span>
+                        <span class="font-bold text-[15px] mt-0.5">Cumberland Events</span>
+                        <span class="text-[13px] text-xdim mt-0.5">5.5K posts</span>
+                    </div>
+                    <div class="text-xdim hover:text-xblue hover:bg-blue-500/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors -mr-2 -mt-1">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </div>
+                </div>
+                
+                <div class="flex justify-between items-start cursor-pointer hover:bg-white/5 py-3 px-4 transition-colors">
+                    <div class="flex flex-col">
+                        <span class="text-[13px] text-xdim">Technology · Trending</span>
+                        <span class="font-bold text-[15px] mt-0.5">#WebDev</span>
+                        <span class="text-[13px] text-xdim mt-0.5">45.2K posts</span>
+                    </div>
+                    <div class="text-xdim hover:text-xblue hover:bg-blue-500/10 rounded-full w-8 h-8 flex items-center justify-center transition-colors -mr-2 -mt-1">
+                        <i class="fa-solid fa-ellipsis"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-[13px] text-xdim px-4 leading-tight">
+                Terms of Service Privacy Policy Cookie Policy Accessibility Ads info © 2026 CHS Social.
+            </div>
+        </aside>
+    </div>
+
+    <!-- Custom Modal for Messages/Errors -->
+    <div id="messageModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-xcard border border-xborder p-6 rounded-2xl max-w-sm w-full shadow-2xl">
+            <h3 id="modalTitle" class="text-xl font-bold mb-2 text-white">Message</h3>
+            <p id="modalBody" class="text-xdim mb-6">Something happened.</p>
+            <button onclick="closeModal()" class="w-full bg-white text-black font-bold py-2 rounded-full hover:bg-gray-200 transition-colors">Got it</button>
+        </div>
+    </div>
+
+    <!-- Camera Modal Viewfinder -->
+    <div id="cameraModal" class="fixed inset-0 bg-black/90 z-[60] hidden flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-lg relative bg-black rounded-2xl overflow-hidden border border-xborder">
+            <video id="cameraVideo" class="w-full h-auto bg-black" playsinline></video>
+            <div class="absolute bottom-0 inset-x-0 p-4 bg-gradient-to-t from-black to-transparent flex justify-center space-x-6">
+                <button id="cancelCameraBtn" class="bg-gray-800 text-white font-bold py-3 px-6 rounded-full hover:bg-gray-700 transition-colors">Cancel</button>
+                <button id="capturePhotoBtn" class="bg-xblue text-white font-bold py-3 px-8 rounded-full hover:bg-xblueHover transition-colors shadow-lg">Capture</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Logic & Application Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, deleteDoc, doc, updateDoc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Exact User Firebase Config
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6fcHsdtBCHLWDLKm9yIJokgeoll0i7c0",
+            authDomain: "os-chat-and-phone.firebaseapp.com",
+            databaseURL: "https://os-chat-and-phone-default-rtdb.firebaseio.com",
+            projectId: "os-chat-and-phone",
+            storageBucket: "os-chat-and-phone.firebasestorage.app",
+            messagingSenderId: "177525708536",
+            appId: "1:177525708536:web:0238d2be8837452a214d0d",
+            measurementId: "G-SBKNFS2LRE"
+        };
+        const appIdentifier = "chs-social-app-v2";
+
+        // Initialize Firebase
+        let app, auth, db;
+        try {
+            app = initializeApp(firebaseConfig);
+            auth = getAuth(app);
+            db = getFirestore(app);
+        } catch(e) {
+            console.error("Firebase init error", e);
+            showModal("Database Error", "Could not connect to Firebase.");
+        }
+
+        let currentUser = null;
+        let currentUserProfile = null;
+        let postsData = [];
+        let base64Image = null; 
+        let signUpPfpBase64 = null;
+        let cameraStream = null;
+        let imagesUploadedToday = 0;
+        const IMAGE_LIMIT = 10;
+        let feedUnsubscribe = null;
+
+        // DOM Elements
+        const authScreen = document.getElementById('authScreen');
+        const mainAppContent = document.getElementById('mainAppContent');
+        const tabLogin = document.getElementById('tabLogin');
+        const tabSignup = document.getElementById('tabSignup');
+        const loginForm = document.getElementById('loginForm');
+        const signupForm = document.getElementById('signupForm');
+        const logoutBtn = document.getElementById('logoutBtn');
+
+        const postContent = document.getElementById('postContent');
+        const charCount = document.getElementById('charCount');
+        const submitPostBtn = document.getElementById('submitPostBtn');
+        const feedContainer = document.getElementById('feedContainer');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+        const imagePreview = document.getElementById('imagePreview');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        
+        const uploadLabelBtn = document.getElementById('uploadLabelBtn');
+        const takePhotoBtn = document.getElementById('takePhotoBtn');
+        const cameraModal = document.getElementById('cameraModal');
+        const cameraVideo = document.getElementById('cameraVideo');
+        const cancelCameraBtn = document.getElementById('cancelCameraBtn');
+        const capturePhotoBtn = document.getElementById('capturePhotoBtn');
+        const dailyLimitIndicator = document.getElementById('dailyLimitIndicator');
+
+        const messageModal = document.getElementById('messageModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalBody = document.getElementById('modalBody');
+
+        window.showModal = (title, body) => {
+            modalTitle.innerText = title;
+            modalBody.innerText = body;
+            messageModal.classList.remove('hidden');
+        };
+
+        window.closeModal = () => {
+            messageModal.classList.add('hidden');
+        };
+
+        // UI Tabs Auth
+        tabLogin.addEventListener('click', () => {
+            loginForm.classList.remove('hidden');
+            signupForm.classList.add('hidden');
+            tabLogin.classList.replace('text-xdim', 'text-xblue');
+            tabLogin.classList.add('border-b-2', 'border-xblue');
+            tabSignup.classList.replace('text-xblue', 'text-xdim');
+            tabSignup.classList.remove('border-b-2', 'border-xblue');
+        });
+
+        tabSignup.addEventListener('click', () => {
+            signupForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+            tabSignup.classList.replace('text-xdim', 'text-xblue');
+            tabSignup.classList.add('border-b-2', 'border-xblue');
+            tabLogin.classList.replace('text-xblue', 'text-xdim');
+            tabLogin.classList.remove('border-b-2', 'border-xblue');
+        });
+
+        // Profile Picture Upload Logic (Canvas Resize)
+        function resizeImageToCanvas(imgSource, isVideo, callback) {
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = isVideo ? imgSource.videoWidth : imgSource.width;
+            let height = isVideo ? imgSource.videoHeight : imgSource.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+            } else {
+                if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(imgSource, 0, 0, width, height);
+            
+            callback(canvas.toDataURL('image/jpeg', 0.7)); 
+        }
+
+        // Signup PFP selection
+        document.getElementById('pfpUploadBtn').addEventListener('click', () => {
+            document.getElementById('signupPfpInput').click();
+        });
+
+        document.getElementById('signupPfpInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    resizeImageToCanvas(img, false, (base64) => {
+                        signUpPfpBase64 = base64;
+                        document.getElementById('signupPfpPreview').src = base64;
+                    });
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Auth Operations
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('loginSubmitBtn');
+            btn.disabled = true; btn.innerText = 'Logging in...';
+            try {
+                await signInWithEmailAndPassword(auth, document.getElementById('loginEmail').value, document.getElementById('loginPassword').value);
+            } catch(error) {
+                showModal("Login Failed", error.message);
+                btn.disabled = false; btn.innerText = 'Log In';
+            }
+        });
+
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('signupSubmitBtn');
+            btn.disabled = true; btn.innerText = 'Creating account...';
+            
+            const email = document.getElementById('signupEmail').value;
+            const password = document.getElementById('signupPassword').value;
+            const displayName = document.getElementById('signupName').value;
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                const user = userCredential.user;
+                
+                // Save custom profile doc
+                const profileRef = doc(db, `artifacts/${appIdentifier}/users`, user.uid, 'profile', 'data');
+                await setDoc(profileRef, {
+                    displayName: displayName,
+                    photoURL: signUpPfpBase64 || `https://placehold.co/150x150/1d9bf0/ffffff?text=${displayName.charAt(0).toUpperCase()}`,
+                    email: email
+                });
+            } catch(error) {
+                showModal("Signup Failed", error.message);
+                btn.disabled = false; btn.innerText = 'Create Account';
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+        });
+
+        // Auth State Listener
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                authScreen.classList.add('hidden');
+                mainAppContent.classList.remove('hidden');
+                
+                // Load Custom Profile
+                try {
+                    const profileRef = doc(db, `artifacts/${appIdentifier}/users`, user.uid, 'profile', 'data');
+                    const profileSnap = await getDoc(profileRef);
+                    if(profileSnap.exists()) {
+                        currentUserProfile = profileSnap.data();
+                    } else {
+                        currentUserProfile = {
+                            displayName: user.email.split('@')[0],
+                            photoURL: `https://placehold.co/150x150/1d9bf0/ffffff?text=U`
+                        };
+                    }
+                } catch(e) {
+                    console.error("Error fetching profile", e);
+                }
+
+                updateProfileUI();
+                setupRealtimePosts();
+                await checkDailyImageLimit();
+            } else {
+                currentUser = null;
+                currentUserProfile = null;
+                authScreen.classList.remove('hidden');
+                mainAppContent.classList.add('hidden');
+                if(feedUnsubscribe) feedUnsubscribe();
+            }
+        });
+
+        function updateProfileUI() {
+            if (!currentUser || !currentUserProfile) return;
+            const handle = currentUser.email.split('@')[0];
+
+            document.getElementById('currentUserName').innerText = currentUserProfile.displayName;
+            document.getElementById('currentUserHandle').innerText = `@${handle}`;
+            document.getElementById('currentUserAvatar').src = currentUserProfile.photoURL;
+            document.getElementById('composerAvatar').src = currentUserProfile.photoURL;
+        }
+
+        // Daily Limit Logic (Firestore Private Path)
+        async function checkDailyImageLimit() {
+            if (!currentUser) return false;
+            const today = new Date().toLocaleDateString('en-CA'); 
+            const limitRef = doc(db, `artifacts/${appIdentifier}/users/${currentUser.uid}/limits`, today);
+            
+            try {
+                const docSnap = await getDoc(limitRef);
+                imagesUploadedToday = docSnap.exists() ? (docSnap.data().imageCount || 0) : 0;
+                
+                dailyLimitIndicator.innerText = `${imagesUploadedToday}/${IMAGE_LIMIT} Photos Today`;
+                dailyLimitIndicator.classList.remove('hidden');
+
+                return imagesUploadedToday < IMAGE_LIMIT;
+            } catch (error) {
+                console.error("Error checking limit", error);
+                return false;
+            }
+        }
+
+        async function incrementDailyImageLimit() {
+            if (!currentUser) return;
+            const today = new Date().toLocaleDateString('en-CA');
+            const limitRef = doc(db, `artifacts/${appIdentifier}/users/${currentUser.uid}/limits`, today);
+            
+            try {
+                const docSnap = await getDoc(limitRef);
+                if (docSnap.exists()) {
+                    await updateDoc(limitRef, { imageCount: (docSnap.data().imageCount || 0) + 1 });
+                } else {
+                    await setDoc(limitRef, { imageCount: 1 });
+                }
+                await checkDailyImageLimit();
+            } catch (error) {
+                console.error("Error updating limit", error);
+            }
+        }
+
+        async function canAttachImage() {
+            const canUpload = await checkDailyImageLimit();
+            if (!canUpload) {
+                showModal("Daily Limit Reached", "You have reached your limit of 10 photos for today. Please try again tomorrow!");
+                return false;
+            }
+            return true;
+        }
+
+        // Image Attachment UI (Composer)
+        uploadLabelBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (!currentUser) return;
+            if (await canAttachImage()) imageInput.click();
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const img = new Image();
+                img.onload = () => {
+                    resizeImageToCanvas(img, false, (base64) => {
+                        base64Image = base64;
+                        imagePreview.src = base64;
+                        imagePreviewContainer.classList.remove('hidden');
+                        submitPostBtn.disabled = false;
+                    });
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+            imageInput.value = ''; 
+        });
+
+        // Camera Logic
+        takePhotoBtn.addEventListener('click', async () => {
+            if (!currentUser || !(await canAttachImage())) return;
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+                cameraVideo.srcObject = cameraStream;
+                cameraVideo.play();
+                cameraModal.classList.remove('hidden');
+            } catch (err) {
+                showModal("Camera Error", "Could not access camera. Please check permissions.");
+            }
+        });
+
+        function closeCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            cameraModal.classList.add('hidden');
+        }
+
+        cancelCameraBtn.addEventListener('click', closeCamera);
+
+        capturePhotoBtn.addEventListener('click', () => {
+            if (cameraVideo.videoWidth > 0) {
+                resizeImageToCanvas(cameraVideo, true, (base64) => {
+                    base64Image = base64;
+                    imagePreview.src = base64;
+                    imagePreviewContainer.classList.remove('hidden');
+                    submitPostBtn.disabled = false;
+                });
+            }
+            closeCamera();
+        });
+
+        removeImageBtn.addEventListener('click', () => {
+            base64Image = null;
+            imagePreviewContainer.classList.add('hidden');
+            imagePreview.src = '';
+            const len = postContent.value.length;
+            submitPostBtn.disabled = (len === 0 || len > 280);
+        });
+
+        // Handle Textarea input
+        postContent.addEventListener('input', () => {
+            postContent.style.height = 'auto';
+            postContent.style.height = (postContent.scrollHeight) + 'px';
+            const len = postContent.value.length;
+            
+            if (len > 0) {
+                charCount.classList.remove('hidden');
+                charCount.innerText = `${len}/280`;
+            } else {
+                charCount.classList.add('hidden');
+            }
+
+            if (len > 280) {
+                charCount.classList.add('text-red-500');
+                submitPostBtn.disabled = true;
+            } else {
+                charCount.classList.remove('text-red-500');
+                submitPostBtn.disabled = (len === 0 && !base64Image);
+            }
+        });
+
+        // Handle Post Submission
+        submitPostBtn.addEventListener('click', async () => {
+            if (!currentUser || !currentUserProfile) return;
+            const text = postContent.value.trim();
+            if (!text && !base64Image) return;
+            
+            if (base64Image && !(await canAttachImage())) {
+                removeImageBtn.click();
+                return;
+            }
+            
+            submitPostBtn.disabled = true;
+            submitPostBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                const postsRef = collection(db, `artifacts/${appIdentifier}/public/data/posts`);
+                const handle = currentUser.email.split('@')[0];
+
+                const newPost = {
+                    text: text,
+                    imageStr: base64Image, 
+                    authorId: currentUser.uid,
+                    authorName: currentUserProfile.displayName,
+                    authorHandle: handle,
+                    authorAvatar: currentUserProfile.photoURL,
+                    createdAt: serverTimestamp(),
+                    likes: 0
+                };
+
+                await addDoc(postsRef, newPost);
+                
+                if (base64Image) await incrementDailyImageLimit();
+                
+                postContent.value = '';
+                postContent.style.height = 'auto';
+                charCount.classList.add('hidden');
+                removeImageBtn.click(); 
+                
+            } catch (error) {
+                showModal("Error", "Could not publish post. Check your Firebase Rules!");
+                submitPostBtn.disabled = false;
+            } finally {
+                submitPostBtn.innerHTML = 'Post';
+            }
+        });
+
+        // Firestore Realtime Feed
+        function setupRealtimePosts() {
+            if (!currentUser) return;
+            if (feedUnsubscribe) feedUnsubscribe();
+
+            const postsRef = collection(db, `artifacts/${appIdentifier}/public/data/posts`);
+            
+            // We do NOT use orderBy here (as per rules), we fetch and sort in memory!
+            feedUnsubscribe = onSnapshot(postsRef, (snapshot) => {
+                postsData = [];
+                snapshot.forEach((doc) => {
+                    postsData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // Sort in memory by time
+                postsData.sort((a, b) => {
+                    const timeA = a.createdAt ? (a.createdAt.toMillis ? a.createdAt.toMillis() : a.createdAt) : 0;
+                    const timeB = b.createdAt ? (b.createdAt.toMillis ? b.createdAt.toMillis() : b.createdAt) : 0;
+                    return timeB - timeA;
+                });
+
+                renderFeed();
+            }, (error) => {
+                console.error("Firestore Listen Error:", error);
+            });
+        }
+
+        window.likePost = async (postId, currentLikes) => {
+            if (!currentUser) return;
+            try {
+                const postRef = doc(db, `artifacts/${appIdentifier}/public/data/posts`, postId);
+                await updateDoc(postRef, { likes: (currentLikes || 0) + 1 });
+            } catch (err) {
+                console.error("Error liking post:", err);
+            }
+        };
+
+        function timeAgo(millis) {
+            if (!millis) return 'Just now';
+            const seconds = Math.floor((new Date() - millis) / 1000);
+            if (seconds < 60) return `${Math.max(1, seconds)}s`;
+            const minutes = Math.floor(seconds / 60);
+            if (minutes < 60) return `${minutes}m`;
+            const hours = Math.floor(minutes / 60);
+            if (hours < 24) return `${hours}h`;
+            return `${Math.floor(hours / 24)}d`;
+        }
+
+        function renderFeed() {
+            feedContainer.innerHTML = '';
+            
+            if (postsData.length === 0) {
+                feedContainer.innerHTML = `
+                    <div class="p-8 text-center text-xdim">
+                        <h3 class="text-xl font-bold text-xlight mb-2">Welcome to your timeline</h3>
+                        <p>When you and others post, they'll show up here.</p>
+                    </div>`;
+                return;
+            }
+
+            postsData.forEach(post => {
+                const timeStr = post.createdAt && post.createdAt.toMillis ? timeAgo(post.createdAt.toMillis()) : 'Just now';
+                const isOwner = currentUser && (currentUser.uid === post.authorId);
+                
+                const deleteBtnHtml = isOwner ? 
+                    `<button class="text-xdim hover:text-red-500 transition-colors delete-post-btn ml-auto p-2" data-id="${post.id}" title="Delete Post">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </button>` : '';
+
+                const imageHtml = post.imageStr ? 
+                    `<div class="mt-3">
+                        <img src="${post.imageStr}" alt="Post image" class="w-full rounded-2xl border border-xborder object-cover max-h-[500px]">
+                    </div>` : '';
+
+                const postEl = document.createElement('article');
+                postEl.className = 'p-4 hover:bg-white/5 transition-colors border-b border-xborder flex space-x-3';
+                postEl.innerHTML = `
+                    <img src="${post.authorAvatar || 'https://placehold.co/100x100/1d9bf0/ffffff?text=U'}" alt="Avatar" class="w-10 h-10 rounded-full flex-shrink-0 object-cover border border-xborder">
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-1 overflow-hidden whitespace-nowrap text-sm sm:text-base">
+                                <span class="font-bold text-xlight truncate hover:underline cursor-pointer">${post.authorName || 'Unknown'}</span>
+                                <span class="text-xdim truncate">@${post.authorHandle || 'user'}</span>
+                                <span class="text-xdim">·</span>
+                                <span class="text-xdim hover:underline cursor-pointer">${timeStr}</span>
+                            </div>
+                            ${deleteBtnHtml}
+                        </div>
+                        
+                        <div class="mt-1 text-[15px] whitespace-pre-wrap break-words">${post.text}</div>
+                        ${imageHtml}
+                        
+                        <div class="flex justify-between text-xdim mt-3 max-w-md">
+                            <div class="flex items-center space-x-2 group hover:text-blue-500 transition-colors cursor-pointer">
+                                <div class="w-8 h-8 rounded-full group-hover:bg-blue-500/10 flex items-center justify-center">
+                                    <i class="fa-regular fa-comment"></i>
+                                </div>
+                                <span class="text-sm">0</span>
+                            </div>
+                            <div class="flex items-center space-x-2 group hover:text-green-500 transition-colors cursor-pointer">
+                                <div class="w-8 h-8 rounded-full group-hover:bg-green-500/10 flex items-center justify-center">
+                                    <i class="fa-solid fa-retweet"></i>
+                                </div>
+                                <span class="text-sm">0</span>
+                            </div>
+                            <button onclick="likePost('${post.id}', ${post.likes || 0})" class="flex items-center space-x-2 group hover:text-pink-500 transition-colors">
+                                <div class="w-8 h-8 rounded-full group-hover:bg-pink-500/10 flex items-center justify-center ${post.likes > 0 ? 'text-pink-500' : ''}">
+                                    <i class="${post.likes > 0 ? 'fa-solid' : 'fa-regular'} fa-heart"></i>
+                                </div>
+                                <span class="text-sm ${post.likes > 0 ? 'text-pink-500' : ''}">${post.likes || 0}</span>
+                            </button>
+                            <div class="flex items-center space-x-2 group hover:text-blue-500 transition-colors hidden sm:flex cursor-pointer">
+                                <div class="w-8 h-8 rounded-full group-hover:bg-blue-500/10 flex items-center justify-center">
+                                    <i class="fa-solid fa-chart-simple"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                feedContainer.appendChild(postEl);
+            });
+
+            document.querySelectorAll('.delete-post-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const postId = btn.getAttribute('data-id');
+                    if(postId && currentUser) {
+                         try {
+                            const postRef = doc(db, `artifacts/${appIdentifier}/public/data/posts`, postId);
+                            await deleteDoc(postRef);
+                         } catch (err) {
+                             showModal("Error", "Could not delete post.");
+                         }
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>
